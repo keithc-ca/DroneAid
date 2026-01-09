@@ -6,6 +6,7 @@
   "scripts": {
     "test": "standard",
     "start": "node server.js",
+    "demo": "node server-demo.js",
     "postinstall": "node download.js https://cdn.jsdelivr.net/npm/@cloud-annotations/object-detection public/js/object-detection.js"
   },
   "author": "",
@@ -22,14 +23,14 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Code-and-Response/DroneAid.git"
+    "url": "git+https://github.com/Call-for-Code/DroneAid.git"
   },
   "bugs": {
-    "url": "https://github.com/Code-and-Response/DroneAid/issues"
+    "url": "https://github.com/Call-for-Code/DroneAid/issues"
   },
-  "homepage": "https://github.com/Code-and-Response/DroneAid",
+  "homepage": "https://github.com/Call-for-Code/DroneAid",
   "dependencies": {
     "express": "^4.21.2",
-    "ws": "^7.5.10"
+    "ws": "^8.19.0"
   }
 }

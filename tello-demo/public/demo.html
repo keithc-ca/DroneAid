@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>DroneAid Demo (Local)</title>
+    <link rel="icon" href="/img/logo_icon_black_196.png">
+    <link rel="stylesheet" href="/css/codait.css">
+    <link rel="stylesheet" href="/css/droneaid-tello.css">
+    <style>
+      .demo-notice {
+        background: #0f62fe;
+        color: white;
+        padding: 12px;
+        text-align: center;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+      .video-source-selector {
+        padding: 10px;
+        background: #f4f4f4;
+        margin: 10px 0;
+      }
+      #testImageCanvas {
+        display: none;
+      }
+      .detection-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+      }
+      .video-container {
+        position: relative;
+        display: inline-block;
+        width: 640px;
+        height: 480px;
+      }
+      #outputCanvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+    </style>
+  </head>
+  <body class="busy">
+    <header class="max-header" role="banner" aria-label="DroneAid">
+      <a class="max-skip" href="#max-main-content" tabindex="0">Skip to main content</a>
+      <span class="max-header-logo"></span>
+      <a class="max-header-name" href="//github.com/Call-for-Code/DroneAid" target="_blank" title="DroneAid">
+        <span class="max-header-name-prefix">DroneAid &nbsp;</span>
+        Local Demo
+      </a>
+      <div class="max-header-sub">
+        <span class="max-header-sub-text">
+          DroneAid symbol detection using your webcam (no drone required)
+        </span>
+      </div>
+    </header>
+    
+    <div class="demo-notice">
+      🚁 DEMO MODE - No physical drone required. Using webcam for testing.
+    </div>
+    
+    <section class="max-subheader">
+      <fieldset class="max-field prediction-toggle-fieldset">
+        <legend>Prediction</legend>
+        <div>
+          <input class="max-toggle" id="predictionToggle" type="checkbox" onchange="predictionToggled();">
+          <label class="max-toggle-label" for="predictionToggle">
+            <span class="max-toggle-off" aria-hidden="true">Off</span>
+            <span class="max-toggle-ui"></span>
+            <span class="max-toggle-on" aria-hidden="true">On</span>
+          </label>
+        </div>
+      </fieldset>
+      <fieldset class="max-field max-threshold-fieldset">
+        <label for="confidenceSlider">Min Confidence Level</label>
+        <input id="confidenceSlider" type="range" min="0.1" max="1" step="0.05" value="0.6" onchange="confidenceChanged();">
+        <span data-max-range="confidenceSlider"></span>
+      </fieldset>
+      <div class="max-field spacer-field"> </div>
+      <div class="max-field battery-field">
+        <div id="status-message">Ready to start</div>
+      </div>
+    </section>
+    
+    <div class="video-source-selector">
+      <button id="startWebcam" onclick="startWebcam()">📹 Start Webcam</button>
+      <button id="stopWebcam" onclick="stopWebcam()" style="display:none;">⏹ Stop Webcam</button>
+      <p style="margin-top: 10px; font-size: 0.9em; color: #666;">
+        💡 Tip: Print or display DroneAid symbols and show them to your webcam to test the model!
+      </p>
+    </div>
+    
+    <main id="max-main-content">
+      <div class="video-container">
+        <video id="videoElement" width="640" height="480" autoplay style="display:none;"></video>
+        <canvas id="outputCanvas" width="640" height="480"></canvas>
+        <canvas id="detectionCanvas" class="detection-overlay" width="640" height="480"></canvas>
+      </div>
+      
+      <div id="predictions" style="margin-top: 20px; padding: 10px; background: #f4f4f4;">
+        <h3>Detected Symbols:</h3>
+        <div id="detectionList">No symbols detected yet. Enable prediction and show symbols to the camera.</div>
+      </div>
+    </main>
+
+    <script src="/js/object-detection.js"></script>
+    <script>
+      let videoElement, outputCanvas, detectionCanvas, ctx, detectionCtx;
+      let predictionEnabled = false;
+      let confidenceThreshold = 0.6;
+      let model = null;
+      let stream = null;
+      let animationFrameId = null;
+
+      // Initialize
+      document.addEventListener('DOMContentLoaded', async function() {
+        videoElement = document.getElementById('videoElement');
+        outputCanvas = document.getElementById('outputCanvas');
+        detectionCanvas = document.getElementById('detectionCanvas');
+        ctx = outputCanvas.getContext('2d');
+        detectionCtx = detectionCanvas.getContext('2d');
+        
+        document.body.classList.remove('busy');
+        
+        // Load the ML model
+        try {
+          console.log('Loading DroneAid model...');
+          document.getElementById('status-message').textContent = 'Loading model...';
+          model = await objectDetector.load('/model_web');
+          console.log('Model loaded successfully!');
+          document.getElementById('status-message').textContent = 'Model ready! Click "Start Webcam"';
+        } catch (error) {
+          console.error('Error loading model:', error);
+          document.getElementById('status-message').textContent = 'Error loading model: ' + error.message;
+        }
+      });
+
+      async function startWebcam() {
+        try {
+          document.getElementById('status-message').textContent = 'Starting webcam...';
+          stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { width: 640, height: 480 } 
+          });
+          videoElement.srcObject = stream;
+          videoElement.style.display = 'block';
+          
+          document.getElementById('startWebcam').style.display = 'none';
+          document.getElementById('stopWebcam').style.display = 'inline-block';
+          document.getElementById('status-message').textContent = 'Webcam active';
+          
+          // Start rendering loop
+          renderFrame();
+        } catch (error) {
+          console.error('Error accessing webcam:', error);
+          document.getElementById('status-message').textContent = 'Error: ' + error.message;
+          alert('Could not access webcam. Please grant camera permissions.');
+        }
+      }
+
+      function stopWebcam() {
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+          videoElement.style.display = 'none';
+          document.getElementById('startWebcam').style.display = 'inline-block';
+          document.getElementById('stopWebcam').style.display = 'none';
+          document.getElementById('status-message').textContent = 'Webcam stopped';
+          
+          if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+          }
+        }
+      }
+
+      function renderFrame() {
+        // Draw video frame to canvas
+        ctx.drawImage(videoElement, 0, 0, 640, 480);
+        
+        // Run predictions if enabled
+        if (predictionEnabled && model) {
+          runPrediction();
+        } else {
+          // Clear detection overlay
+          detectionCtx.clearRect(0, 0, 640, 480);
+        }
+        
+        animationFrameId = requestAnimationFrame(renderFrame);
+      }
+
+      async function runPrediction() {
+        try {
+          const predictions = await model.detect(outputCanvas);
+          
+          // Clear previous detections
+          detectionCtx.clearRect(0, 0, 640, 480);
+          
+          // Filter by confidence
+          const filtered = predictions.filter(p => p.score >= confidenceThreshold);
+          
+          // Draw bounding boxes
+          detectionCtx.strokeStyle = '#00ff00';
+          detectionCtx.lineWidth = 3;
+          detectionCtx.font = '16px Arial';
+          detectionCtx.fillStyle = '#00ff00';
+          
+          let detectionHTML = '';
+          
+          filtered.forEach(prediction => {
+            const [x, y, width, height] = prediction.bbox;
+            
+            // Draw box
+            detectionCtx.strokeRect(x, y, width, height);
+            
+            // Draw label
+            const label = `${prediction.class} (${(prediction.score * 100).toFixed(1)}%)`;
+            detectionCtx.fillText(label, x, y - 5);
+            
+            detectionHTML += `<div style="padding: 5px; border-left: 3px solid #00ff00; margin: 5px 0;">
+              <strong>${prediction.class}</strong>: ${(prediction.score * 100).toFixed(1)}% confidence
+            </div>`;
+          });
+          
+          document.getElementById('detectionList').innerHTML = 
+            filtered.length > 0 ? detectionHTML : 'No symbols detected above threshold.';
+            
+        } catch (error) {
+          console.error('Prediction error:', error);
+        }
+      }
+
+      function predictionToggled() {
+        predictionEnabled = document.getElementById('predictionToggle').checked;
+        console.log('Prediction:', predictionEnabled ? 'ON' : 'OFF');
+      }
+
+      function confidenceChanged() {
+        confidenceThreshold = parseFloat(document.getElementById('confidenceSlider').value);
+        document.querySelector('[data-max-range="confidenceSlider"]').textContent = 
+          confidenceThreshold.toFixed(2);
+      }
+
+      // Initialize slider display
+      confidenceChanged();
+    </script>
+  </body>
+</html>

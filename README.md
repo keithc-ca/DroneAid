@@ -56,7 +56,50 @@ These symbols include those below, which represent a subset of the icons provide
 
 ![Dashboard Screenshot](img/DashboardScreenshot.png)
 
-A demonstration implementation takes the video stream of DJI Tello drone and analyzes the frames to find and count symbols. See [tello-demo](tello-demo) for instructions on how to get it running.
+### Quick Start: Local Demo (No Drone Required)
+
+Test DroneAid using your computer's webcam without needing a physical drone:
+
+1. **Install dependencies**
+
+   ```bash
+   cd tello-demo
+   npm install
+   ```
+
+2. **Start the demo server**
+
+   ```bash
+   npm run demo
+   ```
+
+3. **Open the demo in your browser**
+   - Navigate to <http://127.0.0.1:5000/demo.html>
+   - Click "Start Webcam" to activate your camera
+   - Toggle "Prediction" to "On" to enable detection
+   - Show DroneAid symbols to your webcam (print them from `img/icons/`)
+
+The model will detect symbols like SOS, Water, Food, Shelter, First Aid, Children, Elderly, and OK with bounding boxes and confidence scores.
+
+See [tello-demo/DEMO-SETUP.md](tello-demo/DEMO-SETUP.md) for detailed instructions.
+
+### Full Demo: DJI Tello Drone
+
+A demonstration implementation takes the video stream of a DJI Tello drone and analyzes the frames to find and count symbols in real-time.
+
+**Prerequisites:**
+
+- DJI Tello drone
+- FFmpeg installed (`brew install ffmpeg` on macOS)
+
+**Run with Tello:**
+
+1. Connect your computer to the Tello drone's WiFi
+2. Start the server: `npm start` (in the `tello-demo` directory)
+3. Open <http://127.0.0.1:5000/>
+4. Click "Start stream"
+
+See [tello-demo/README.md](tello-demo/README.md) for complete instructions.
 
 ## Use the pre-trained visual recognition model on the Symbol Language
 
