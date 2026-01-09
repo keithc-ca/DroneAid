@@ -60,21 +60,26 @@ droneaid-2026/
 
 **Files Created**:
 
-- `webapp/package.json` - React application configuration
+- `webapp/package.json` - React application configuration with Mapbox GL dependencies
 - `webapp/Dockerfile` - Multi-stage production build
 - `webapp/nginx.conf` - Nginx configuration with API proxy
 - `webapp/vite.config.ts` - Vite build configuration
 - `webapp/tsconfig.json` - TypeScript configuration
-- `webapp/src/App.tsx` - Complete functional component (332 lines)
-- `webapp/src/App.scss` - Responsive styling
+- `webapp/src/App.tsx` - Complete functional component with color-coded tags
+- `webapp/src/App.scss` - Responsive styling with map section
 - `webapp/src/index.tsx` - Application entry point
+- `webapp/src/components/DetectionMap.tsx` - Interactive Mapbox map component
+- `webapp/src/components/DetectionMap.scss` - Map styling with animations
+- `webapp/src/vite-env.d.ts` - TypeScript environment variable declarations
+- `webapp/.env.example` - Environment variable template for Mapbox token
+- `webapp/.env` - Local environment configuration (gitignored)
 
 **Fully Implemented Features**:
 
 - ✅ Real-time webcam capture with getUserMedia
-- ✅ Live YOLOv8 detection at 5 FPS (throttled for performance)
+- ✅ Live YOLOv8 detection at 1 FPS (once per second, optimized)
 - ✅ Canvas-based bounding box visualization
-- ✅ Detection list with confidence scores
+- ✅ Detection list with color-coded tags matching actual icon colors
 - ✅ Adjustable confidence threshold slider
 - ✅ Start/stop webcam controls
 - ✅ Enable/disable prediction toggle
@@ -82,15 +87,25 @@ droneaid-2026/
 - ✅ White panel layout with matching styling
 - ✅ REST API integration with /api/detect endpoint
 - ✅ React refs pattern to avoid closure issues in render loop
+- ✅ Interactive Mapbox map with dark theme
+- ✅ Simulated GPS locations across San Francisco city
+- ✅ Fade in/out animations for detection markers (5-second lifetime)
+- ✅ Color-matched markers using actual icon PNG colors
+- ✅ Map zoom controls and popup information
 
 **Technical Implementation**:
 
 - Canvas-based video rendering with overlay for detections
 - RequestAnimationFrame loop for smooth 60 FPS video display
-- Throttled detection (200ms intervals) to balance performance
+- Throttled detection (1000ms intervals / 1 per second) for optimal performance
 - FormData/blob API for efficient image transfer
 - TypeScript for type safety throughout
-- SCSS for maintainable styling
+- SCSS for maintainable styling with CSS animations
+- Mapbox GL JS for interactive mapping
+- PIL/Pillow for extracting actual icon colors from PNG files
+- Environment variable configuration for Mapbox access token
+- Map marker lifecycle management with setTimeout/clearTimeout
+- CSS keyframe animations for fade in/out effects
 
 ### ✅ Infrastructure
 
@@ -135,7 +150,9 @@ droneaid-2026/
 | Training | Manual/Cloud | Docker (local or cloud) |
 | Inference | Browser only | FastAPI REST API |
 | UI Framework | Vanilla JS | React + Carbon |
-| Mapping | Not implemented | Leaflet integrated |
+| Mapping | Static mockup | Mapbox GL JS with animations |
+| Symbol Colors | Hardcoded guesses | Extracted from actual PNG icons |
+| Detection Rate | Continuous | 1 per second (optimized) |
 | Containerization | Partial | Full Docker |
 
 ### Architecture
@@ -217,22 +234,26 @@ Train custom models:
 3. Train with `docker run`
 4. Deploy with inference service
 
-## Potential Enhancements
+## Current Status
 
-While the system is fully functional, these features could be added:
+The system is fully functional and production-ready with the following complete features:
 
-### Future Features
+- ✅ **Interactive Mapping**: Mapbox GL JS integration with simulated GPS locations
+- ✅ **Accurate Colors**: Symbol colors extracted directly from icon PNG files
+- ✅ **Smooth Animations**: Fade in/out effects for detection markers
+- ✅ **Optimized Performance**: 1 detection per second for efficient processing
+- ✅ **Professional UI**: Carbon Design System with responsive layout
 
-- **Map Integration**: Add Leaflet map to show detection locations with GPS
-- **WebSocket Streaming**: Real-time video streaming instead of frame-by-frame
-- **Multi-Camera Support**: Switch between multiple camera sources
-- **Detection History**: Store and review past detections
-- **Advanced Analytics**: Dashboard with detection statistics
-- **Mobile App**: React Native mobile application
-- **Offline Mode**: Progressive Web App with service workers
-- **Export Reports**: PDF/CSV export of detection results
+### Future Enhancements
 
-**Note**: The core detection system is production-ready and fully operational.
+See [ROADMAP.md](ROADMAP.md) for planned features including:
+
+- Real GPS integration with drone telemetry
+- WebSocket streaming for continuous video
+- Detection history and analytics dashboard
+- Multi-camera and multi-drone support
+- Mobile Progressive Web App
+- Export and reporting capabilities
 
 ## Testing the System
 

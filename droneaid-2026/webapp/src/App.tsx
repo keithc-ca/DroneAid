@@ -11,6 +11,7 @@ import {
   Tile
 } from '@carbon/react';
 import { Video, VideoOff } from '@carbon/icons-react';
+import DetectionMap from './components/DetectionMap';
 import '@carbon/styles/css/styles.css';
 import './App.scss';
 
@@ -19,6 +20,18 @@ interface Detection {
   confidence: number;
   bbox: [number, number, number, number]; // [x, y, width, height]
 }
+
+// Symbol colors matching DroneAid icon files
+const SYMBOL_COLORS: { [key: string]: string } = {
+  'children': '#cf8ffd',
+  'elderly': '#8c07ff',
+  'firstaid': '#ffed10',
+  'food': '#e22b00',
+  'ok': '#00ce08',
+  'shelter': '#00cbb3',
+  'sos': '#ff6c00',
+  'water': '#418fde'
+};
 
 function App() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -110,10 +123,10 @@ function App() {
     // Draw video frame to canvas
     ctx.drawImage(video, 0, 0, 640, 480);
 
-    // Run predictions if enabled (throttle to max 5 per second)
+    // Run predictions if enabled (throttle to max 1 per second)
     const now = Date.now();
     
-    if (isPredictionEnabledRef.current && modelLoadedRef.current && !isProcessing && now - lastPredictionRef.current > 200) {
+    if (isPredictionEnabledRef.current && modelLoadedRef.current && !isProcessing && now - lastPredictionRef.current > 1000) {
       lastPredictionRef.current = now;
       runPrediction(canvas);
     } else if (!isPredictionEnabledRef.current) {
@@ -305,14 +318,25 @@ function App() {
             <h3>Detected Symbols</h3>
             {detections.length > 0 ? (
                 <div className="detection-list">
-                  {detections.map((detection: Detection, idx: number) => (
-                    <div key={idx} className="detection-item">
-                      <Tag type="blue">{detection.class_name}</Tag>
-                      <span className="confidence">
-                        {(detection.confidence * 100).toFixed(1)}% confidence
-                      </span>
-                    </div>
-                  ))}
+                  {detections.map((detection: Detection, idx: number) => {
+                    const color = SYMBOL_COLORS[detection.class_name.toLowerCase()] || '#0f62fe';
+                    return (
+                      <div key={idx} className="detection-item">
+                        <Tag 
+                          type="blue"
+                          style={{ 
+                            backgroundColor: color,
+                            color: '#ffffff'
+                          }}
+                        >
+                          {detection.class_name}
+                        </Tag>
+                        <span className="confidence">
+                          {(detection.confidence * 100).toFixed(1)}% confidence
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="no-detections">
@@ -323,6 +347,11 @@ function App() {
               )}
           </Tile>
         </div>
+
+        <Tile className="map-section">
+          <h3>Detection Map</h3>
+          <DetectionMap detections={detections} />
+        </Tile>
       </Content>
     </div>
   );

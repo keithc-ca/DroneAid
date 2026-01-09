@@ -16,7 +16,7 @@ DroneAid 2026 is a complete reimplementation of the DroneAid disaster response s
 
 ## Architecture
 
-```
+```txt
 droneaid-2026/
 ├── assets/           # Icons, images, and static resources
 ├── training/         # Model training environment (Docker)
@@ -59,7 +59,17 @@ docker build -f training/Dockerfile -t droneaid-training .
 docker run -v $(pwd)/training/data:/app/data -v $(pwd)/training/models:/app/models droneaid-training
 ```
 
-**2. Start All Services**
+**2. Configure Environment Variables**
+
+```bash
+cd webapp
+cp .env.example .env
+# Edit .env and add your Mapbox access token
+```
+
+Get a free Mapbox token at <https://account.mapbox.com/access-tokens/>
+
+**3. Start All Services**
 
 ```bash
 docker-compose up -d
@@ -156,7 +166,7 @@ See individual Dockerfiles for configuration options.
 
 ### Project Structure
 
-```
+```txt
 droneaid-2026/
 ├── assets/
 │   ├── icons/              # Symbol images (8 disaster icons)
@@ -192,6 +202,8 @@ droneaid-2026/
 ## Contributing
 
 DroneAid 2026 is part of the Call for Code initiative. Contributions are welcome!
+
+See [ROADMAP.md](ROADMAP.md) for planned features and improvements.
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
