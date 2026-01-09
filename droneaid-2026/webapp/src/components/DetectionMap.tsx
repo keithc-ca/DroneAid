@@ -63,8 +63,11 @@ const DetectionMap = ({ detections }: DetectionMapProps) => {
 
     // Add new markers for detections
     detections.forEach((detection) => {
-      // Create a unique key for this detection instance
-      const key = `${detection.class_name}-${detection.timestamp || Date.now()}-${Math.random()}`;
+      // Create a unique key for this detection instance using crypto.randomUUID if available
+      const uniqueId = typeof crypto !== 'undefined' && crypto.randomUUID 
+        ? crypto.randomUUID() 
+        : `${Date.now()}-${Math.random()}`;
+      const key = `${detection.class_name}-${uniqueId}`;
       
       // Skip if already processed
       if (processedDetectionsRef.current.has(key)) return;
