@@ -52,21 +52,21 @@ it's time to create a fork.
 
 ### Step 1: Fork
 
-Fork the project [on GitHub](https://github.com/Code-and-Response/DroneAid) and clone your fork
+Fork the project [on GitHub](https://github.com/Call-for-Code/DroneAid) and clone your fork
 locally.
 
 ```text
-$ git clone git@github.com:username/DroneAid.git
-$ cd DroneAid
-$ git remote add upstream https://github.com/Code-and-Response/DroneAid.git
-$ git fetch upstream
+git clone git@github.com:username/DroneAid.git
+cd DroneAid
+git remote add upstream https://github.com/Call-for-Code/DroneAid.git
+git fetch upstream
 ```
 
 It is recommended to configure `git` so that it knows who you are:
 
 ```text
-$ git config user.name "J. Random User"
-$ git config user.email "j.random.user@example.com"
+git config user.name "J. Random User"
+git config user.email "j.random.user@example.com"
 ```
 
 You can use any name/email address you prefer here. We only use the
@@ -80,7 +80,7 @@ possible, create local branches to work within. These should also be created
 directly off of the `master` branch.
 
 ```text
-$ git checkout -b my-branch -t upstream/master
+git checkout -b my-branch -t upstream/master
 ```
 
 ## The Process of Making Changes
@@ -97,8 +97,8 @@ commits any single Pull Request may have, and many contributors find it easier
 to review changes that are split across multiple commits.
 
 ```text
-$ git add my/changed/files
-$ git commit
+git add my/changed/files
+git commit
 ```
 
 Note that multiple commits often get squashed when they are landed (see the
@@ -161,8 +161,8 @@ to use `git rebase` (not `git merge`) to synchronize your work with the main
 repository.
 
 ```text
-$ git fetch upstream
-$ git rebase upstream/master
+git fetch upstream
+git rebase upstream/master
 ```
 
 This ensures that your working branch has the latest changes from `c`
@@ -179,7 +179,7 @@ begin the process of opening a Pull Request by pushing your working branch to
 your fork on GitHub.
 
 ```text
-$ git push origin my-branch
+git push origin my-branch
 ```
 
 ### Step 8: Opening the Pull Request
@@ -205,18 +205,18 @@ branch, add a new commit with those changes, and push those to your fork.
 GitHub will automatically update the Pull Request.
 
 ```text
-$ git add my/changed/files
-$ git commit
-$ git push origin my-branch
+git add my/changed/files
+git commit
+git push origin my-branch
 ```
 
 It is also frequently necessary to synchronize your Pull Request with other
 changes that have landed in `master` by using `git rebase`:
 
 ```text
-$ git fetch --all
-$ git rebase origin/master
-$ git push --force-with-lease origin my-branch
+git fetch --all
+git rebase origin/master
+git push --force-with-lease origin my-branch
 ```
 
 **Important:** The `git push --force-with-lease` command is one of the few ways
@@ -228,9 +228,9 @@ If you happen to make a mistake in any of your commits, do not worry. You can
 amend the last commit (for example if you want to change the commit log).
 
 ```text
-$ git add any/changed/files
-$ git commit --amend
-$ git push --force-with-lease origin my-branch
+git add any/changed/files
+git commit --amend
+git push --force-with-lease origin my-branch
 ```
 
 There are a number of more advanced mechanisms for managing commits using
@@ -296,7 +296,7 @@ does not land, the submitters should come away from the experience feeling like
 their effort was not wasted or unappreciated. Every Pull Request from a new
 contributor is an opportunity to grow the community.
 
-### Review a bit at a time.
+### Review a bit at a time
 
 Do not overwhelm new contributors.
 
@@ -359,13 +359,13 @@ check with the contributor to see if they intend to continue the work before
 checking if they would mind if you took it over (especially if it just has
 nits left). When doing so, it is courteous to give the original contributor
 credit for the work they started (either by preserving their name and email
-address in the commit log, or by using an `Author: ` meta-data tag in the
+address in the commit log, or by using an `Author:` meta-data tag in the
 commit.
 
 ### Approving a change
 
 Any DroneAid core Collaborator (any GitHub user with commit rights in the
-`Code-and-Response/DroneAid` repository) is authorized to approve any other contributor's
+`Call-for-Code/DroneAid` repository) is authorized to approve any other contributor's
 work. Collaborators are not permitted to approve their own Pull Requests.
 
 Collaborators indicate that they have reviewed and approve of the changes in

@@ -22,7 +22,7 @@ And finally, my goal is to build the foundations for a fleet of drones that can 
 
 **Can devs can get involved right away? If so, where can they go to get started?**
 
-Yes! Anyone with a Tello drone can use this code base as a proof of concept and can train their own models immediately, not only with the SOS icons that we use, but also with their own objects. Go to the GitHub link to get started: [https://github.com/code-and-response/droneaid](https://github.com/code-and-response/droneaid).
+Yes! Anyone with a Tello drone can use this code base as a proof of concept and can train their own models immediately, not only with the SOS icons that we use, but also with their own objects. Go to the GitHub link to get started: [https://github.com/Call-for-Code/DroneAid](https://github.com/Call-for-Code/DroneAid).
 
 **Is the goal to use DroneAid around the world?**
 

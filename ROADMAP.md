@@ -13,7 +13,7 @@ Within the next months we are aiming to do:
 - [ ] Extend to consumer DJI drones like the Mavic, Phantom, and Spark.
 - [ ] Document steps for PowerAI and Watson Visual Recognition.
 - [ ] Create a model to detect handrawn "SOS".
-- [ ] Integrate reporting with the [Project OWL](https://github.com/Code-and-Response/Project-OWL) mesh network.
+- [ ] Integrate reporting with the [ClusterDuck Protocol](https://github.com/ClusterDuck-Protocol) mesh network.
 
 Longer term goals are:
 

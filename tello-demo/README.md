@@ -16,7 +16,7 @@ This directory contains the instructions for viewing the streaming video from a 
 1. Clone this repository
 
    ```sh
-   git clone https://github.com/Code-and-Response/DroneAid.git
+   git clone https://github.com/Call-for-Code/DroneAid.git
    ```
 
 1. Change to `tello-demo` directory
