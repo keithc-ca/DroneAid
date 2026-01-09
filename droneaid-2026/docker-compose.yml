@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # Inference API Service
+  inference:
+    build:
+      context: ./inference
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./inference/models:/app/models
+      - ./training/models:/app/training_models:ro
+    environment:
+      - MODEL_PATH=/app/training_models/droneaid/weights/best.pt
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - droneaid
+
+  # Web Application
+  webapp:
+    build:
+      context: ./webapp
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    depends_on:
+      - inference
+    restart: unless-stopped
+    networks:
+      - droneaid
+
+networks:
+  droneaid:
+    driver: bridge
+
+volumes:
+  models:

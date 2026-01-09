@@ -1,0 +1,22 @@
+# Core ML and Computer Vision
+ultralytics==8.3.0
+torch>=2.0.0
+torchvision>=0.15.0
+opencv-python-headless==4.10.0.84
+
+# ONNX export support
+onnx>=1.15.0
+onnxruntime>=1.16.0
+onnxscript>=0.1.0
+
+# Data processing
+numpy>=1.24.0
+pillow>=10.0.0
+pyyaml>=6.0
+
+# Utilities
+tqdm>=4.65.0
+requests>=2.31.0
+
+# Logging and monitoring
+tensorboard>=2.15.0
