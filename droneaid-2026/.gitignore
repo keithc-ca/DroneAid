@@ -1,0 +1,104 @@
+# DroneAid 2026 - Python/ML/Docker specific ignores
+# (Parent repo has general Node.js ignores)
+
+# Training artifacts (can be very large - retrain as needed)
+training/data/
+training/models/
+training/runs/
+*.pt
+*.pth
+*.onnx
+*.weights
+*.pb
+
+# Inference models (copy from training after training)
+inference/models/*.pt
+inference/models/*.onnx
+
+# Keep model directories but not the files
+!training/models/.gitkeep
+!inference/models/.gitkeep
+
+# Node.js dependencies
+node_modules/
+webapp/node_modules/
+package-lock.json
+webapp/package-lock.json
+
+# Build outputs
+webapp/build/
+webapp/dist/
+webapp/.vite/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+
+# Docker
+.dockerignore
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# TensorBoard
+events.out.tfevents.*
+runs/
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+*.ipynb
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.cache

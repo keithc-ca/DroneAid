@@ -1,0 +1,2 @@
+# This directory will contain the inference model
+# Copy from training/models/droneaid/weights/best.pt after training
