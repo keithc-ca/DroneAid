@@ -2,8 +2,6 @@
 // This version serves static video/images for testing the ML model
 
 const path = require("path");
-const { spawn } = require("child_process");
-const fs = require("fs");
 
 const ws = require("ws");
 const express = require("express");
@@ -16,17 +14,17 @@ const PORT2 = 5001;
 app.use(express.static(path.join(__dirname, "public")));
 
 // Demo mode endpoints (no drone required)
-app.post("/streamon", async (req, res) => {
+app.post("/streamon", (req, res) => {
   console.log("Demo mode: Stream started (using test images)");
   res.json({ status: "ok", message: "Demo mode - no physical drone required" });
 });
 
-app.post("/streamoff", async (req, res) => {
+app.post("/streamoff", (req, res) => {
   console.log("Demo mode: Stream stopped");
   res.json({ status: "ok", message: "Demo mode stream stopped" });
 });
 
-app.get("/battery", async (req, res) => {
+app.get("/battery", (req, res) => {
   // Return a mock battery level
   const mockBattery = Math.floor(Math.random() * 30) + 70; // 70-100%
   res.send(mockBattery.toString());

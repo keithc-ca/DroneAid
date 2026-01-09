@@ -94,7 +94,7 @@
     
     <main id="max-main-content">
       <div class="video-container">
-        <video id="videoElement" width="640" height="480" autoplay style="display:none;"></video>
+        <video id="videoElement" width="640" height="480" autoplay muted style="display:none;"></video>
         <canvas id="outputCanvas" width="640" height="480"></canvas>
         <canvas id="detectionCanvas" class="detection-overlay" width="640" height="480"></canvas>
       </div>
@@ -113,6 +113,8 @@
       let model = null;
       let stream = null;
       let animationFrameId = null;
+      let lastPredictionTime = 0;
+      let isPredicting = false;
 
       // Initialize
       document.addEventListener('DOMContentLoaded', async function() {
@@ -166,21 +168,30 @@
           document.getElementById('startWebcam').style.display = 'inline-block';
           document.getElementById('stopWebcam').style.display = 'none';
           document.getElementById('status-message').textContent = 'Webcam stopped';
+          stream = null;
           
           if (animationFrameId) {
             cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
           }
         }
       }
 
       function renderFrame() {
+        // Only continue if stream is active
+        if (!stream) {
+          return;
+        }
+        
         // Draw video frame to canvas
         ctx.drawImage(videoElement, 0, 0, 640, 480);
         
-        // Run predictions if enabled
-        if (predictionEnabled && model) {
+        // Run predictions if enabled (throttled to ~200ms intervals)
+        const now = Date.now();
+        if (predictionEnabled && model && !isPredicting && (now - lastPredictionTime) >= 200) {
+          lastPredictionTime = now;
           runPrediction();
-        } else {
+        } else if (!predictionEnabled) {
           // Clear detection overlay
           detectionCtx.clearRect(0, 0, 640, 480);
         }
@@ -189,6 +200,9 @@
       }
 
       async function runPrediction() {
+        if (isPredicting) return;
+        isPredicting = true;
+        
         try {
           const predictions = await model.detect(outputCanvas);
           
@@ -226,6 +240,8 @@
             
         } catch (error) {
           console.error('Prediction error:', error);
+        } finally {
+          isPredicting = false;
         }
       }
 
