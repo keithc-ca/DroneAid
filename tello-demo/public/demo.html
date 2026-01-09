@@ -190,6 +190,7 @@
         const now = Date.now();
         if (predictionEnabled && model && !isPredicting && (now - lastPredictionTime) >= 200) {
           lastPredictionTime = now;
+          isPredicting = true;
           runPrediction();
         } else if (!predictionEnabled) {
           // Clear detection overlay
@@ -200,9 +201,6 @@
       }
 
       async function runPrediction() {
-        if (isPredicting) return;
-        isPredicting = true;
-        
         try {
           const predictions = await model.detect(outputCanvas);
           
