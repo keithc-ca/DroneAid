@@ -12,6 +12,7 @@ import {
 } from '@carbon/react';
 import { Video, VideoOff } from '@carbon/icons-react';
 import DetectionMap from './components/DetectionMap';
+import { SYMBOL_COLORS } from './constants';
 import '@carbon/styles/css/styles.css';
 import './App.scss';
 
@@ -20,18 +21,6 @@ interface Detection {
   confidence: number;
   bbox: [number, number, number, number]; // [x, y, width, height]
 }
-
-// Symbol colors matching DroneAid icon files
-const SYMBOL_COLORS: { [key: string]: string } = {
-  'children': '#cf8ffd',
-  'elderly': '#8c07ff',
-  'firstaid': '#ffed10',
-  'food': '#e22b00',
-  'ok': '#00ce08',
-  'shelter': '#00cbb3',
-  'sos': '#ff6c00',
-  'water': '#418fde'
-};
 
 function App() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -123,7 +112,8 @@ function App() {
     // Draw video frame to canvas
     ctx.drawImage(video, 0, 0, 640, 480);
 
-    // Run predictions if enabled (throttle to max 1 per second)
+    // Run predictions if enabled, throttled to max 1 per second to reduce CPU/GPU load
+    // and avoid performance issues observed when running detection at higher (~5/sec) rates.
     const now = Date.now();
     
     if (isPredictionEnabledRef.current && modelLoadedRef.current && !isProcessing && now - lastPredictionRef.current > 1000) {

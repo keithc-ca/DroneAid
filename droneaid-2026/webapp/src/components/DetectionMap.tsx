@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { ZoomIn, ZoomOut } from '@carbon/icons-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { SYMBOL_COLORS } from '../constants';
 import './DetectionMap.scss';
 
 interface Detection {
@@ -20,27 +21,22 @@ const DEFAULT_LATITUDE = 37.7749;  // San Francisco
 const DEFAULT_LONGITUDE = -122.4194;
 const DEFAULT_ZOOM = 12;  // Zoomed to San Francisco city
 
-// Symbol colors matching DroneAid theme
-const SYMBOL_COLORS: { [key: string]: string } = {
-  'children': '#cf8ffd',   // light purple
-  'elderly': '#8c07ff',    // purple
-  'firstaid': '#ffed10',   // yellow
-  'food': '#e22b00',       // red-orange
-  'ok': '#00ce08',         // green
-  'shelter': '#00cbb3',    // teal
-  'sos': '#ff6c00',        // orange
-  'water': '#418fde'       // blue
-};
-
 // Mapbox access token from environment variable
 // Get your token from https://account.mapbox.com/access-tokens/
 // Set in webapp/.env file (see .env.example for template)
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '';
+const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '';
+
+if (!MAPBOX_ACCESS_TOKEN) {
+  console.error('Mapbox access token is missing. Please set VITE_MAPBOX_ACCESS_TOKEN in your .env file.');
+}
+
+mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
 
 const DetectionMap = ({ detections }: DetectionMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const markersRef = useRef<Map<string, { marker: mapboxgl.Marker; timeout: number }>>(new Map());
+  const markersRef = useRef<Map<string, { marker: mapboxgl.Marker; timeout: ReturnType<typeof setTimeout> }>>(new Map());
+  const processedDetectionsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (map.current) return; // Initialize map only once
@@ -52,15 +48,9 @@ const DetectionMap = ({ detections }: DetectionMapProps) => {
       style: 'mapbox://styles/mapbox/dark-v11',
       center: [DEFAULT_LONGITUDE, DEFAULT_LATITUDE],
       zoom: DEFAULT_ZOOM,
-      attributionControl: false,
+      attributionControl: { compact: true },
       preserveDrawingBuffer: true,
     });
-
-    map.current.addControl(
-      new mapboxgl.AttributionControl({
-        compact: true,
-      })
-    );
 
     return () => {
       map.current?.remove();
@@ -73,14 +63,22 @@ const DetectionMap = ({ detections }: DetectionMapProps) => {
 
     // Add new markers for detections
     detections.forEach((detection) => {
-      // Simulate location randomly across San Francisco city
+      // Create a unique key for this detection instance using crypto.randomUUID if available
+      const uniqueId = typeof crypto !== 'undefined' && crypto.randomUUID 
+        ? crypto.randomUUID() 
+        : `${Date.now()}-${Math.random()}`;
+      const key = `${detection.class_name}-${uniqueId}`;
+      
+      // Skip if already processed
+      if (processedDetectionsRef.current.has(key)) return;
+      processedDetectionsRef.current.add(key);
+
+      // Simulate location randomly across San Francisco city.
+      // NOTE: This randomness is intentional for demo purposes and does not model a real drone path.
       const lat = DEFAULT_LATITUDE + (Math.random() - 0.5) * 0.08;
       const lng = DEFAULT_LONGITUDE + (Math.random() - 0.5) * 0.08;
 
       const color = SYMBOL_COLORS[detection.class_name.toLowerCase()] || '#ffffff';
-
-      // Create a unique key for this detection instance
-      const key = `${detection.class_name}-${Date.now()}-${Math.random()}`;
 
       // Create a custom marker element
       const el = document.createElement('div');
@@ -93,14 +91,25 @@ const DetectionMap = ({ detections }: DetectionMapProps) => {
       el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
       el.style.cursor = 'pointer';
 
-      // Create popup
-      const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
-        `<div style="padding: 8px;">
-          <strong>${detection.class_name}</strong><br/>
-          Confidence: ${(detection.confidence * 100).toFixed(1)}%<br/>
-          <small>Simulated location</small>
-        </div>`
-      );
+      // Create popup content using DOM methods to prevent XSS
+      const popupContent = document.createElement('div');
+      popupContent.style.padding = '8px';
+
+      const titleEl = document.createElement('strong');
+      titleEl.textContent = detection.class_name;
+      popupContent.appendChild(titleEl);
+      popupContent.appendChild(document.createElement('br'));
+
+      const confidenceEl = document.createElement('div');
+      confidenceEl.textContent = `Confidence: ${(detection.confidence * 100).toFixed(1)}%`;
+      popupContent.appendChild(confidenceEl);
+      popupContent.appendChild(document.createElement('br'));
+
+      const locationEl = document.createElement('small');
+      locationEl.textContent = 'Simulated location';
+      popupContent.appendChild(locationEl);
+
+      const popup = new mapboxgl.Popup({ offset: 25 }).setDOMContent(popupContent);
 
       // Add marker to map
       const marker = new mapboxgl.Marker(el)
@@ -117,6 +126,7 @@ const DetectionMap = ({ detections }: DetectionMapProps) => {
         setTimeout(() => {
           marker.remove();
           markersRef.current.delete(key);
+          processedDetectionsRef.current.delete(key);
         }, 500); // Match fade-out duration
       }, 5000);
 
