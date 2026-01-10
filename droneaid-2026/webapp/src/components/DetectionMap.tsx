@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 import { ZoomIn, ZoomOut } from '@carbon/icons-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { SYMBOL_COLORS } from '../constants';
 import './DetectionMap.scss';
 
 interface Detection {
@@ -17,9 +16,9 @@ interface DetectionMapProps {
   detections: Detection[];
 }
 
-const DEFAULT_LATITUDE = 37.7749;  // San Francisco
-const DEFAULT_LONGITUDE = -122.4194;
-const DEFAULT_ZOOM = 12;  // Zoomed to San Francisco city
+const DEFAULT_LATITUDE = 18.2208;  // Puerto Rico
+const DEFAULT_LONGITUDE = -66.5901;
+const DEFAULT_ZOOM = 8;  // Zoomed to show the island
 
 // Mapbox access token from environment variable
 // Get your token from https://account.mapbox.com/access-tokens/
@@ -48,9 +47,15 @@ const DetectionMap = ({ detections }: DetectionMapProps) => {
       style: 'mapbox://styles/mapbox/dark-v11',
       center: [DEFAULT_LONGITUDE, DEFAULT_LATITUDE],
       zoom: DEFAULT_ZOOM,
-      attributionControl: { compact: true },
+      attributionControl: false,
       preserveDrawingBuffer: true,
     });
+
+    map.current.addControl(
+      new mapboxgl.AttributionControl({
+        compact: true,
+      })
+    );
 
     return () => {
       map.current?.remove();
@@ -73,23 +78,24 @@ const DetectionMap = ({ detections }: DetectionMapProps) => {
       if (processedDetectionsRef.current.has(key)) return;
       processedDetectionsRef.current.add(key);
 
-      // Simulate location randomly across San Francisco city.
+      // Simulate location randomly across Puerto Rico.
       // NOTE: This randomness is intentional for demo purposes and does not model a real drone path.
-      const lat = DEFAULT_LATITUDE + (Math.random() - 0.5) * 0.08;
-      const lng = DEFAULT_LONGITUDE + (Math.random() - 0.5) * 0.08;
+      const lat = DEFAULT_LATITUDE + (Math.random() - 0.5) * 0.5;
+      const lng = DEFAULT_LONGITUDE + (Math.random() - 0.5) * 1.0;
 
-      const color = SYMBOL_COLORS[detection.class_name.toLowerCase()] || '#ffffff';
-
-      // Create a custom marker element
+      // Create a custom marker element using the marker image
       const el = document.createElement('div');
       el.className = 'detection-marker fade-in';
-      el.style.backgroundColor = color;
-      el.style.width = '16px';
-      el.style.height = '16px';
-      el.style.borderRadius = '50%';
-      el.style.border = '2px solid white';
-      el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
       el.style.cursor = 'pointer';
+      el.style.width = '64px';
+      el.style.height = '80px';
+
+      const img = document.createElement('img');
+      img.src = `/assets/markers/marker-${detection.class_name.toLowerCase()}.png?v=${Date.now()}`;
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.display = 'block';
+      el.appendChild(img);
 
       // Create popup content using DOM methods to prevent XSS
       const popupContent = document.createElement('div');
@@ -109,10 +115,10 @@ const DetectionMap = ({ detections }: DetectionMapProps) => {
       locationEl.textContent = 'Simulated location';
       popupContent.appendChild(locationEl);
 
-      const popup = new mapboxgl.Popup({ offset: 25 }).setDOMContent(popupContent);
+      const popup = new mapboxgl.Popup({ offset: 40 }).setDOMContent(popupContent);
 
-      // Add marker to map
-      const marker = new mapboxgl.Marker(el)
+      // Add marker to map with anchor at bottom (where the pointer is)
+      const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
         .setLngLat([lng, lat])
         .setPopup(popup)
         .addTo(map.current!);
