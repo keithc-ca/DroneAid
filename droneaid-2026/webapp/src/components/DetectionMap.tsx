@@ -91,7 +91,7 @@ const DetectionMap = ({ detections }: DetectionMapProps) => {
       el.style.height = '80px';
 
       const img = document.createElement('img');
-      img.src = `/assets/markers/marker-${detection.class_name.toLowerCase()}.png?v=${Date.now()}`;
+      img.src = `/assets/markers/marker-${detection.class_name.toLowerCase()}.png`;
       img.style.width = '100%';
       img.style.height = '100%';
       img.style.display = 'block';
