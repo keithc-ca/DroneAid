@@ -71,9 +71,24 @@ docker run \
 cp training/models/droneaid/weights/best.pt inference/models/
 ```
 
-### Step 3: Start Services
+### Step 3: Configure Environment Variables
 
 ```bash
+# From droneaid-2026 directory
+cd webapp
+cp .env.example .env
+```
+
+Edit `webapp/.env` and add your Mapbox access token:
+- Get a free token at https://account.mapbox.com/access-tokens/
+- Set `VITE_MAPBOX_ACCESS_TOKEN="your_token_here"`
+
+**Note**: The Mapbox token is required for the interactive detection map feature. Without it, the map will not load but detection will still work.
+
+### Step 4: Start Services
+
+```bash
+# From droneaid-2026 directory
 # Start all services
 docker-compose up --build
 
@@ -81,7 +96,7 @@ docker-compose up --build
 docker-compose up -d
 ```
 
-### Step 4: Access the Application
+### Step 5: Access the Application
 
 Open your browser:
 
@@ -99,9 +114,11 @@ Open your browser:
 4. **Adjust Confidence** - Use slider to set minimum confidence threshold (0.1-1.0)
 5. **Show Symbols** - Display DroneAid symbols to your camera
 6. **View Results**:
-   - **Left Panel**: Live webcam feed with bounding boxes drawn on detected symbols
-   - **Right Panel**: List of detected symbols with confidence percentages
-7. **Stop When Done** - Click "Stop Webcam" to release camera
+   - **Detected Stream Panel**: Live webcam feed with bounding boxes drawn on detected symbols
+   - **Detected Symbols Panel**: List of detected symbols with color-coded tags and confidence percentages
+   - **Detection Map**: Interactive Mapbox map showing simulated detection locations across San Francisco
+7. **Watch Map Animations**: Markers fade in when detected, stay for 5 seconds, then fade out
+8. **Stop When Done** - Click "Stop Webcam" to release camera
 
 ### Testing with Symbol Images
 
