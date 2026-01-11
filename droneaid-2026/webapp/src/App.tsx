@@ -4,7 +4,6 @@ import {
   HeaderName,
   HeaderGlobalBar,
   Content,
-  Toggle,
   Slider,
   Button,
   Tag,
@@ -12,6 +11,7 @@ import {
 } from '@carbon/react';
 import { Video, VideoOff } from '@carbon/icons-react';
 import DetectionMap from './components/DetectionMap';
+import ImageUpload from './components/ImageUpload';
 import { SYMBOL_COLORS } from './constants';
 import '@carbon/styles/css/styles.css';
 import './App.scss';
@@ -20,6 +20,8 @@ interface Detection {
   class_name: string;
   confidence: number;
   bbox: [number, number, number, number]; // [x, y, width, height]
+  timestamp?: number;
+  location?: [number, number]; // [longitude, latitude]
 }
 
 function App() {
@@ -29,20 +31,46 @@ function App() {
   const streamRef = useRef<MediaStream | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const lastPredictionRef = useRef<number>(0);
-  const isPredictionEnabledRef = useRef<boolean>(false);
   const modelLoadedRef = useRef<boolean>(false);
+  const isWebcamActiveRef = useRef<boolean>(false);
 
   const [isWebcamActive, setIsWebcamActive] = useState(false);
-  const [isPredictionEnabled, setIsPredictionEnabled] = useState(false);
   const [confidenceThreshold, setConfidenceThreshold] = useState(0.6);
   const [detections, setDetections] = useState<Detection[]>([]);
   const [modelLoaded, setModelLoaded] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
+  const [isImageMode, setIsImageMode] = useState(false);
+  const [fadingDetections, setFadingDetections] = useState<Set<number>>(new Set());
+
+  // Manage detection lifecycle - fade out and remove after 30 seconds
+  useEffect(() => {
+    detections.forEach((detection, index) => {
+      if (detection.timestamp && !fadingDetections.has(index)) {
+        // Set timeout to start fade out after 30 seconds
+        const fadeTimeout = setTimeout(() => {
+          setFadingDetections(prev => new Set(prev).add(index));
+          
+          // Remove detection after fade animation completes
+          setTimeout(() => {
+            setDetections(prev => prev.filter((_, i) => i !== index));
+            setFadingDetections(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(index);
+              return newSet;
+            });
+          }, 500); // Match fade-out duration
+        }, 30000);
+        
+        return () => clearTimeout(fadeTimeout);
+      }
+    });
+  }, [detections, fadingDetections]);
 
   // Keep refs in sync with state
   useEffect(() => {
-    isPredictionEnabledRef.current = isPredictionEnabled;
-  }, [isPredictionEnabled]);
+    isWebcamActiveRef.current = isWebcamActive;
+  }, [isWebcamActive]);
 
   useEffect(() => {
     modelLoadedRef.current = modelLoaded;
@@ -71,6 +99,10 @@ function App() {
 
   const startWebcam = async () => {
     try {
+      // Reset image mode when starting webcam
+      setIsImageMode(false);
+      setUploadedImageUrl(null);
+      
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { width: 640, height: 480 }
       });
@@ -112,20 +144,13 @@ function App() {
     // Draw video frame to canvas
     ctx.drawImage(video, 0, 0, 640, 480);
 
-    // Run predictions if enabled, throttled to max 1 per second to reduce CPU/GPU load
+    // Run predictions when webcam is active, throttled to max 1 per second to reduce CPU/GPU load
     // and avoid performance issues observed when running detection at higher (~5/sec) rates.
     const now = Date.now();
     
-    if (isPredictionEnabledRef.current && modelLoadedRef.current && !isProcessing && now - lastPredictionRef.current > 1000) {
+    if (isWebcamActiveRef.current && modelLoadedRef.current && !isProcessing && now - lastPredictionRef.current > 1000) {
       lastPredictionRef.current = now;
       runPrediction(canvas);
-    } else if (!isPredictionEnabledRef.current) {
-      // Clear detection overlay
-      const detectionCanvas = detectionCanvasRef.current;
-      const detectionCtx = detectionCanvas?.getContext('2d');
-      if (detectionCtx) {
-        detectionCtx.clearRect(0, 0, 640, 480);
-      }
     }
 
     animationFrameRef.current = requestAnimationFrame(renderFrame);
@@ -145,6 +170,7 @@ function App() {
       // Send to inference API
       const formData = new FormData();
       formData.append('file', blob, 'frame.jpg');
+      formData.append('conf_threshold', confidenceThreshold.toString());
 
       const response = await fetch('/api/detect', {
         method: 'POST',
@@ -169,6 +195,26 @@ function App() {
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handleImageUpload = (imageUrl: string, imageDetections: Detection[]) => {
+    console.log('Image upload handler called with detections:', imageDetections);
+    
+    // Switch to image mode
+    setIsImageMode(true);
+    setUploadedImageUrl(imageUrl);
+    
+    // Stop webcam if active
+    if (isWebcamActive) {
+      stopWebcam();
+    }
+    
+    // Add detections to the map
+    setDetections(prev => {
+      const newDetections = [...prev, ...imageDetections];
+      console.log('Updated detections:', newDetections);
+      return newDetections;
+    });
   };
 
   const drawDetections = (predictions: Detection[]) => {
@@ -204,12 +250,12 @@ function App() {
     });
   };
 
-  // Update render loop when prediction is toggled
+  // Update render loop when threshold changes
   useEffect(() => {
     if (isWebcamActive && !animationFrameRef.current) {
       renderFrame();
     }
-  }, [isPredictionEnabled, confidenceThreshold]);
+  }, [confidenceThreshold]);
 
   return (
     <div className="app">
@@ -248,14 +294,9 @@ function App() {
           </div>
 
           <div className="control-group">
-            <Toggle
-              id="prediction-toggle"
-              labelText="Prediction"
-              labelA="Off"
-              labelB="On"
-              toggled={isPredictionEnabled}
-              onToggle={(checked: boolean) => setIsPredictionEnabled(checked)}
-              disabled={!isWebcamActive || !modelLoaded}
+            <ImageUpload 
+              confidenceThreshold={confidenceThreshold}
+              onImageUpload={handleImageUpload}
             />
           </div>
 
@@ -268,36 +309,45 @@ function App() {
               step={0.05}
               value={confidenceThreshold}
               onChange={(e: { value: number }) => setConfidenceThreshold(e.value)}
-              disabled={!isPredictionEnabled}
             />
           </div>
         </div>
 
         <div className="content-grid">
           <Tile className="video-section">
-            <h3>Detected Stream</h3>
+            <h3>{isImageMode && uploadedImageUrl ? 'Detected Image' : 'Detected Stream'}</h3>
             <div className="video-container">
-              <video
-                ref={videoRef}
-                width="640"
-                height="480"
-                autoPlay
-                style={{ display: 'none' }}
-              />
-              <canvas
-                ref={canvasRef}
-                width="640"
-                height="480"
-                className="output-canvas"
-              />
-              <canvas
-                ref={detectionCanvasRef}
-                width="640"
-                height="480"
-                className="detection-canvas"
-              />
+              {isImageMode && uploadedImageUrl ? (
+                <img 
+                  src={uploadedImageUrl} 
+                  alt="Uploaded" 
+                  style={{ maxWidth: '640px', maxHeight: '480px', objectFit: 'contain' }}
+                />
+              ) : (
+                <>
+                  <video
+                    ref={videoRef}
+                    width="640"
+                    height="480"
+                    autoPlay
+                    style={{ display: 'none' }}
+                  />
+                  <canvas
+                    ref={canvasRef}
+                    width="640"
+                    height="480"
+                    className="output-canvas"
+                  />
+                  <canvas
+                    ref={detectionCanvasRef}
+                    width="640"
+                    height="480"
+                    className="detection-canvas"
+                  />
+                </>
+              )}
             </div>
-            {!isWebcamActive && (
+            {!isWebcamActive && !isImageMode && (
               <p className="webcam-tip">
                 💡 Tip: Print or display DroneAid symbols and show them to your webcam to test the model!
               </p>
@@ -310,8 +360,12 @@ function App() {
                 <div className="detection-list">
                   {detections.map((detection: Detection, idx: number) => {
                     const color = SYMBOL_COLORS[detection.class_name.toLowerCase()] || '#0f62fe';
+                    const isFading = fadingDetections.has(idx);
                     return (
-                      <div key={idx} className="detection-item">
+                      <div 
+                        key={`${detection.class_name}-${detection.timestamp || idx}`} 
+                        className={`detection-item ${isFading ? 'fade-out' : 'fade-in'}`}
+                      >
                         <Tag 
                           type="blue"
                           style={{ 
@@ -330,9 +384,9 @@ function App() {
                 </div>
               ) : (
                 <p className="no-detections">
-                  {isPredictionEnabled
+                  {isWebcamActive || isImageMode
                     ? 'No symbols detected above threshold.'
-                    : 'Enable prediction and show symbols to the camera.'}
+                    : 'Start the webcam or upload an image to detect symbols.'}
                 </p>
               )}
           </Tile>

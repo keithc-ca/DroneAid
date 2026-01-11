@@ -118,10 +118,40 @@
   border-left: 3px solid #0f62fe;
   border-radius: 2px;
 
+  &.fade-in {
+    animation: fadeInItem 0.5s ease-in;
+  }
+
+  &.fade-out {
+    animation: fadeOutItem 0.5s ease-out forwards;
+  }
+
   .confidence {
     font-size: 0.875rem;
     color: #525252;
     font-weight: 500;
+  }
+}
+
+@keyframes fadeInItem {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeOutItem {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(10px);
   }
 }
 
