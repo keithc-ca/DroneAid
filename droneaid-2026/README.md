@@ -11,7 +11,9 @@ DroneAid 2026 is a complete reimplementation of the DroneAid disaster response s
 - **Modern ML Stack**: YOLOv8-based object detection for superior accuracy
 - **Full Containerization**: Docker-based training and inference for easy deployment
 - **Enhanced UI**: React with Carbon Design System for a professional interface
-- **Integrated Mapping**: Real-time visualization of detected symbols on interactive maps
+- **GPS-Enabled Detection**: Upload images with GPS EXIF data for accurate location mapping
+- **Integrated Mapping**: Real-time visualization on interactive Mapbox maps centered on Puerto Rico
+- **Dual Input Modes**: Live webcam detection and static image upload
 - **Cloud-Ready**: Designed for local development and cloud deployment
 
 ## Architecture
@@ -83,22 +85,44 @@ The system will:
 
 ## Features
 
-### Real-Time Symbol Detection
+### Dual Detection Modes
 
-- **Live Webcam Feed**: Real-time detection from your camera
+**Webcam Stream Detection**
+- **Live Feed**: Real-time detection from your camera
+- **Automatic Detection**: Starts immediately when webcam is activated
 - **YOLOv8 Accuracy**: State-of-the-art object detection
 - **Bounding Boxes**: Visual overlay showing detected symbols
-- **Confidence Scores**: Adjustable threshold (default 60%)
+- **Confidence Scores**: Adjustable threshold (10-100%)
 - **Multiple Symbols**: Detects all 8 disaster response symbols simultaneously
-- **5 FPS Detection**: Optimized for real-time performance
+- **Optimized Performance**: 1 FPS detection rate to reduce CPU/GPU load
+
+**Image Upload Detection**
+- **GPS-Enabled**: Automatically extracts GPS coordinates from EXIF metadata
+- **Batch Upload**: Process multiple images at once
+- **Accurate Mapping**: Plots detections at real GPS locations
+- **JPG Support**: Works with standard JPEG images from cameras and drones
+- **Instant Results**: Automatic detection on upload (no toggle required)
+
+### Interactive Mapping
+
+- **Mapbox Integration**: Professional dark-theme map centered on Puerto Rico
+- **Custom Markers**: Color-coded symbols with triangle pointers
+- **GPS Precision**: Real coordinates from image EXIF or simulated for webcam
+- **Animated Markers**: Smooth fade-in and fade-out transitions
+- **30-Second Display**: Markers remain visible for 30 seconds before fading out
+- **Hover Popups**: View detection details (symbol, confidence, location)
+- **Zoom Controls**: Interactive navigation and zoom (default: level 8)
 
 ### Modern Web Interface
 
 - **Carbon Design System**: Professional IBM design language
 - **Responsive Layout**: Works on desktop and tablet
-- **Live Detection Panel**: Real-time list of detected symbols with confidence
-- **Video Controls**: Start/stop webcam, toggle detection on/off
-- **Adjustable Settings**: Confidence threshold slider
+- **Dual Input Modes**: Switch between webcam and image upload
+- **Live Detection Panel**: Real-time list with fade animations (30-second lifetime)
+- **Video Controls**: Start/stop webcam with automatic detection
+- **Image Upload**: Blue Carbon button for selecting JPG files
+- **Adjustable Settings**: Confidence threshold slider (always enabled)
+- **Detection Map**: Full-width Mapbox visualization below video feed
 
 ### Symbols Supported
 
@@ -113,7 +137,24 @@ The system will:
 
 ## Training Your Own Model
 
-See [docs/TRAINING.md](docs/TRAINING.md) for detailed instructions on:
+The training system has been enhanced to detect icons even when colors are faded or washed-out:
+
+- **Color Degradation Simulation**: 50% of training data includes desaturated, faded icons
+- **Weather Effects**: Fog, haze, and sun glare simulation for environmental robustness
+- **Shape-Based Detection**: Edge enhancement trains the model to recognize icon shapes, not just colors
+- **Robust Detection**: Works with sun-bleached, aged, or poorly printed icons
+
+### Quick Retrain
+
+```bash
+cd training
+docker build -t droneaid-training .
+docker run -v $(pwd)/data:/app/data -v $(pwd)/models:/app/models droneaid-training
+```
+
+See [docs/RETRAINING.md](docs/RETRAINING.md) for a complete retraining guide.
+
+For detailed training information, see [docs/TRAINING.md](docs/TRAINING.md):
 
 - Preparing custom datasets
 - Configuring training parameters

@@ -12,12 +12,15 @@ training/runs/
 *.pb
 
 # Inference models (copy from training after training)
-inference/models/*.pt
-inference/models/*.onnx
+inference/models/
+!inference/models/.gitkeep
 
 # Keep model directories but not the files
 !training/models/.gitkeep
 !inference/models/.gitkeep
+
+# Assets - sample generated images
+assets/samples/pr_s2_tiles/
 
 # Node.js dependencies
 node_modules/
@@ -85,6 +88,10 @@ Thumbs.db
 # TensorBoard
 events.out.tfevents.*
 runs/
+
+# Docker volumes and data
+**/data/droneaid_dataset/
+docker/data/
 
 # Jupyter Notebooks
 .ipynb_checkpoints

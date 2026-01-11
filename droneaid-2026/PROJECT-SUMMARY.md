@@ -36,6 +36,11 @@ droneaid-2026/
 - Automated hyperparameter tuning
 - TensorBoard integration
 - Multiple export formats (PyTorch, ONNX, TensorFlow)
+- **Enhanced Dataset Generation** (January 11, 2026):
+  - Color degradation simulation (50% of images) - faded/washed-out icons
+  - Weather effects (30% of images) - fog, haze, sun glare
+  - Shape enhancement (20% of images) - edge detection for geometry-based detection
+  - Robust against color fading, aging, and environmental conditions
 
 ### ✅ Inference Service
 
@@ -60,38 +65,44 @@ droneaid-2026/
 
 **Files Created**:
 
-- `webapp/package.json` - React application configuration with Mapbox GL dependencies
+- `webapp/package.json` - React application with Mapbox GL, exifr for EXIF GPS reading
 - `webapp/Dockerfile` - Multi-stage production build
 - `webapp/nginx.conf` - Nginx configuration with API proxy
 - `webapp/vite.config.ts` - Vite build configuration
 - `webapp/tsconfig.json` - TypeScript configuration
-- `webapp/src/App.tsx` - Complete functional component with color-coded tags
-- `webapp/src/App.scss` - Responsive styling with map section
+- `webapp/src/App.tsx` - Complete functional component with dual input modes
+- `webapp/src/App.scss` - Responsive styling with fade animations
 - `webapp/src/index.tsx` - Application entry point
-- `webapp/src/components/DetectionMap.tsx` - Interactive Mapbox map component
-- `webapp/src/components/DetectionMap.scss` - Map styling with animations
+- `webapp/src/components/DetectionMap.tsx` - Interactive Mapbox map with GPS support
+- `webapp/src/components/DetectionMap.scss` - Map styling with marker animations
+- `webapp/src/components/ImageUpload.tsx` - File upload with EXIF GPS extraction
 - `webapp/src/vite-env.d.ts` - TypeScript environment variable declarations
 - `webapp/.env.example` - Environment variable template for Mapbox token
 - `webapp/.env` - Local environment configuration (gitignored)
+- `webapp/public/favicon.ico` - Generated from DroneAid logo
+- `webapp/public/assets/markers/` - 8 custom PNG markers (64x80px)
 
 **Fully Implemented Features**:
 
+- ✅ Dual input modes: webcam stream and image upload
 - ✅ Real-time webcam capture with getUserMedia
-- ✅ Live YOLOv8 detection at 1 FPS (once per second, optimized)
+- ✅ Automatic detection when webcam starts (no toggle needed)
+- ✅ Live YOLOv8 detection at 1 FPS (optimized for performance)
 - ✅ Canvas-based bounding box visualization
-- ✅ Detection list with color-coded tags matching actual icon colors
-- ✅ Adjustable confidence threshold slider
-- ✅ Start/stop webcam controls
-- ✅ Enable/disable prediction toggle
+- ✅ Image upload with GPS EXIF metadata extraction using exifr
+- ✅ Batch image processing support
+- ✅ Detection list with color-coded tags and fade animations
+- ✅ 30-second marker lifetime with fade in/out transitions
+- ✅ Adjustable confidence threshold slider (always enabled)
+- ✅ Start/stop webcam controls with mode switching
 - ✅ Responsive Carbon Design System UI
-- ✅ White panel layout with matching styling
 - ✅ REST API integration with /api/detect endpoint
 - ✅ React refs pattern to avoid closure issues in render loop
-- ✅ Interactive Mapbox map with dark theme
-- ✅ Simulated GPS locations across San Francisco city
-- ✅ Fade in/out animations for detection markers (5-second lifetime)
-- ✅ Color-matched markers using actual icon PNG colors
-- ✅ Map zoom controls and popup information
+- ✅ Interactive Mapbox map centered on Puerto Rico (zoom 8)
+- ✅ GPS-accurate plotting from image EXIF or simulated for webcam
+- ✅ Custom color-matched markers with triangle pointers
+- ✅ Map zoom controls and popup information with GPS coordinates
+- ✅ Mode-specific UI: "Detected Stream" vs "Detected Image" titles
 
 **Technical Implementation**:
 
@@ -101,11 +112,15 @@ droneaid-2026/
 - FormData/blob API for efficient image transfer
 - TypeScript for type safety throughout
 - SCSS for maintainable styling with CSS animations
-- Mapbox GL JS for interactive mapping
-- PIL/Pillow for extracting actual icon colors from PNG files
-- Environment variable configuration for Mapbox access token
-- Map marker lifecycle management with setTimeout/clearTimeout
-- CSS keyframe animations for fade in/out effects
+- Mapbox GL JS for interactive mapping with dark-v11 theme
+- exifr library for GPS EXIF metadata extraction
+- PIL/Pillow for extracting actual icon colors and generating custom markers
+- Environment variable configuration for Mapbox access token (VITE_MAPBOX_ACCESS_TOKEN)
+- Map marker lifecycle management with 30-second display duration
+- CSS keyframe animations for fade in/out effects on markers and detection list
+- Refs (useRef) to track webcam and processing state across render cycles
+- Dual mode state management (webcam vs image upload)
+- Python script for generating 64x80px marker images from icon PNGs
 
 ### ✅ Infrastructure
 
@@ -126,15 +141,21 @@ droneaid-2026/
 
 **Files Created**:
 
-- `README.md` - Project overview
-- `GETTING-STARTED.md` - Quick start guide
-- `docs/TRAINING.md` - Training documentation
+- `README.md` - Project overview with retraining quick start
+- `GETTING-STARTED.md` - Quick start guide with dual mode workflows
+- `RETRAINING-SUMMARY.md` - Model enhancement summary (January 11, 2026)
+- `docs/TRAINING.md` - Complete training documentation with enhancements
+- `docs/RETRAINING.md` - Step-by-step retraining guide
+- `docs/TRAINING-ENHANCEMENTS.md` - Detailed enhancement explanation and examples
 - `docs/API.md` - API reference
+- `.github/copilot-instructions.md` - Comprehensive project context for AI assistance
 
 **Coverage**:
 
 - Installation and setup
-- Training workflows
+- Training workflows with shape + color detection
+- Model retraining for faded icon detection
+- Enhanced dataset generation techniques
 - API integration
 - Deployment strategies
 - Troubleshooting

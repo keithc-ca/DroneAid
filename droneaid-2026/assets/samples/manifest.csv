@@ -1,0 +1,6 @@
+filename,center_lat,center_lon,time,layer,bbox_lat1,bbox_lon1,bbox_lat2,bbox_lon2
+PR_tile_01.jpg,18.468,-66.118,2026-01-10,MODIS_Terra_CorrectedReflectance_TrueColor,18.463000,-66.123000,18.473000,-66.113000
+PR_tile_02.jpg,18.294,-65.793,2026-01-10,MODIS_Terra_CorrectedReflectance_TrueColor,18.289000,-65.798000,18.299000,-65.788000
+PR_tile_03.jpg,18.009,-66.614,2026-01-10,MODIS_Terra_CorrectedReflectance_TrueColor,18.004000,-66.619000,18.014000,-66.609000
+PR_tile_04.jpg,18.339,-67.251,2026-01-10,MODIS_Terra_CorrectedReflectance_TrueColor,18.334000,-67.256000,18.344000,-67.246000
+PR_tile_05.jpg,18.472,-66.717,2026-01-10,MODIS_Terra_CorrectedReflectance_TrueColor,18.467000,-66.722000,18.477000,-66.712000

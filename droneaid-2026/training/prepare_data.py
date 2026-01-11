@@ -7,9 +7,10 @@ import os
 import shutil
 from pathlib import Path
 import yaml
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter, ImageEnhance
 import random
 import numpy as np
+import cv2
 
 # Symbol classes
 CLASSES = [
@@ -26,9 +27,11 @@ CLASSES = [
 def create_synthetic_dataset(icons_dir, output_dir, num_images_per_class=100):
     """
     Create a synthetic dataset by placing icons on various backgrounds
-    with augmentations (rotation, scale, position, lighting)
+    with augmentations (rotation, scale, position, lighting, color fading, shape emphasis)
+    Enhanced to detect both color AND shape features for robustness against faded/washed-out icons
     """
     print("Creating synthetic training dataset...")
+    print("Enhanced with shape detection and color degradation simulation...")
     
     # Create directory structure
     images_dir = Path(output_dir) / 'images'
@@ -85,6 +88,25 @@ def create_synthetic_dataset(icons_dir, output_dir, num_images_per_class=100):
             new_size = (int(icon.width * scale), int(icon.height * scale))
             scaled_icon = icon.resize(new_size, Image.LANCZOS)
             
+            # === NEW: Color degradation simulation (50% of images) ===
+            # This simulates faded, washed-out, or sun-bleached icons
+            if random.random() < 0.5:
+                # Reduce saturation (desaturate to simulate fading)
+                saturation_factor = random.uniform(0.3, 0.7)  # 30-70% saturation
+                enhancer = ImageEnhance.Color(scaled_icon)
+                scaled_icon = enhancer.enhance(saturation_factor)
+                
+                # Adjust brightness (simulate sun bleaching or fading)
+                brightness_factor = random.uniform(0.7, 1.3)
+                enhancer = ImageEnhance.Brightness(scaled_icon)
+                scaled_icon = enhancer.enhance(brightness_factor)
+                
+                # Reduce contrast (washed out appearance)
+                if random.random() < 0.3:
+                    contrast_factor = random.uniform(0.5, 0.8)
+                    enhancer = ImageEnhance.Contrast(scaled_icon)
+                    scaled_icon = enhancer.enhance(contrast_factor)
+            
             # Random rotation
             angle = random.uniform(-30, 30)
             rotated_icon = scaled_icon.rotate(angle, expand=True, fillcolor=(0, 0, 0, 0))
@@ -98,9 +120,43 @@ def create_synthetic_dataset(icons_dir, output_dir, num_images_per_class=100):
             # Paste icon onto background
             background.paste(rotated_icon, (x, y), rotated_icon)
             
+            # === NEW: Weather/environmental effects (30% of images) ===
+            if random.random() < 0.3:
+                effect_type = random.choice(['fog', 'haze', 'sunglare'])
+                
+                if effect_type == 'fog':
+                    # Add white fog overlay
+                    fog_layer = Image.new('RGB', (bg_width, bg_height), (255, 255, 255))
+                    background = Image.blend(background, fog_layer, alpha=random.uniform(0.2, 0.4))
+                    
+                elif effect_type == 'haze':
+                    # Add gray haze
+                    haze_color = random.randint(180, 220)
+                    haze_layer = Image.new('RGB', (bg_width, bg_height), (haze_color, haze_color, haze_color))
+                    background = Image.blend(background, haze_layer, alpha=random.uniform(0.15, 0.35))
+                    
+                elif effect_type == 'sunglare':
+                    # Increase brightness in a gradient (sun glare effect)
+                    enhancer = ImageEnhance.Brightness(background)
+                    background = enhancer.enhance(random.uniform(1.2, 1.5))
+            
             # Add slight blur or noise occasionally
             if random.random() < 0.2:
                 background = background.filter(ImageFilter.GaussianBlur(radius=random.uniform(0.5, 2.0)))
+            
+            # === NEW: Add edge enhancement to emphasize shape (20% of images) ===
+            # This helps the model learn shape features, not just color
+            if random.random() < 0.2:
+                # Convert to numpy for OpenCV processing
+                bg_array = np.array(background)
+                
+                # Apply edge enhancement
+                edges = cv2.Canny(bg_array, 50, 150)
+                edges_colored = cv2.cvtColor(edges, cv2.COLOR_GRAY2RGB)
+                
+                # Blend edges back into image (subtle)
+                bg_array = cv2.addWeighted(bg_array, 0.9, edges_colored, 0.1, 0)
+                background = Image.fromarray(bg_array)
             
             # Calculate YOLO format bounding box
             # YOLO format: class_id x_center y_center width height (all normalized 0-1)
@@ -125,6 +181,9 @@ def create_synthetic_dataset(icons_dir, output_dir, num_images_per_class=100):
                 print(f"Generated {img_count} images...")
     
     print(f"Dataset creation complete! Generated {img_count} total images.")
+    print("  - 50% with color degradation (faded/washed-out simulation)")
+    print("  - 30% with weather effects (fog/haze/sunglare)")
+    print("  - 20% with edge enhancement (shape emphasis)")
     return img_count
 
 def create_dataset_yaml(output_dir):

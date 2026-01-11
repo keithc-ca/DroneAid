@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 import { ZoomIn, ZoomOut } from '@carbon/icons-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { SYMBOL_COLORS } from '../constants';
 import './DetectionMap.scss';
 
 interface Detection {
@@ -17,9 +16,9 @@ interface DetectionMapProps {
   detections: Detection[];
 }
 
-const DEFAULT_LATITUDE = 37.7749;  // San Francisco
-const DEFAULT_LONGITUDE = -122.4194;
-const DEFAULT_ZOOM = 12;  // Zoomed to San Francisco city
+const DEFAULT_LATITUDE = 18.2208;  // Puerto Rico
+const DEFAULT_LONGITUDE = -66.5901;
+const DEFAULT_ZOOM = 8;  // Zoomed to show the island
 
 // Mapbox access token from environment variable
 // Get your token from https://account.mapbox.com/access-tokens/
@@ -48,9 +47,15 @@ const DetectionMap = ({ detections }: DetectionMapProps) => {
       style: 'mapbox://styles/mapbox/dark-v11',
       center: [DEFAULT_LONGITUDE, DEFAULT_LATITUDE],
       zoom: DEFAULT_ZOOM,
-      attributionControl: { compact: true },
+      attributionControl: false,
       preserveDrawingBuffer: true,
     });
+
+    map.current.addControl(
+      new mapboxgl.AttributionControl({
+        compact: true,
+      })
+    );
 
     return () => {
       map.current?.remove();
@@ -61,35 +66,52 @@ const DetectionMap = ({ detections }: DetectionMapProps) => {
   useEffect(() => {
     if (!map.current) return;
 
+    console.log('DetectionMap received detections:', detections);
+
     // Add new markers for detections
     detections.forEach((detection) => {
-      // Create a unique key for this detection instance using crypto.randomUUID if available
-      const uniqueId = typeof crypto !== 'undefined' && crypto.randomUUID 
-        ? crypto.randomUUID() 
-        : `${Date.now()}-${Math.random()}`;
+      // Create a unique key using timestamp if available, otherwise use a random ID
+      // This ensures we can track which detections have been processed
+      const uniqueId = detection.timestamp || Date.now() + Math.random();
       const key = `${detection.class_name}-${uniqueId}`;
       
       // Skip if already processed
-      if (processedDetectionsRef.current.has(key)) return;
+      if (processedDetectionsRef.current.has(key)) {
+        console.log('Skipping already processed detection:', key);
+        return;
+      }
       processedDetectionsRef.current.add(key);
+      console.log('Processing new detection:', key, detection);
 
-      // Simulate location randomly across San Francisco city.
-      // NOTE: This randomness is intentional for demo purposes and does not model a real drone path.
-      const lat = DEFAULT_LATITUDE + (Math.random() - 0.5) * 0.08;
-      const lng = DEFAULT_LONGITUDE + (Math.random() - 0.5) * 0.08;
+      // Use GPS coordinates from EXIF if available, otherwise simulate location across Puerto Rico
+      let lat: number, lng: number, locationSource: string;
+      
+      if (detection.location && detection.location[0] !== undefined && detection.location[1] !== undefined) {
+        // Use real GPS coordinates from image EXIF
+        lng = detection.location[0];
+        lat = detection.location[1];
+        locationSource = `GPS: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+      } else {
+        // Simulate location randomly across Puerto Rico for webcam stream
+        // NOTE: This randomness is intentional for demo purposes and does not model a real drone path.
+        lat = DEFAULT_LATITUDE + (Math.random() - 0.5) * 0.5;
+        lng = DEFAULT_LONGITUDE + (Math.random() - 0.5) * 1.0;
+        locationSource = 'Simulated location';
+      }
 
-      const color = SYMBOL_COLORS[detection.class_name.toLowerCase()] || '#ffffff';
-
-      // Create a custom marker element
+      // Create a custom marker element using the marker image
       const el = document.createElement('div');
       el.className = 'detection-marker fade-in';
-      el.style.backgroundColor = color;
-      el.style.width = '16px';
-      el.style.height = '16px';
-      el.style.borderRadius = '50%';
-      el.style.border = '2px solid white';
-      el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
       el.style.cursor = 'pointer';
+      el.style.width = '64px';
+      el.style.height = '80px';
+
+      const img = document.createElement('img');
+      img.src = `/assets/markers/marker-${detection.class_name.toLowerCase()}.png`;
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.display = 'block';
+      el.appendChild(img);
 
       // Create popup content using DOM methods to prevent XSS
       const popupContent = document.createElement('div');
@@ -106,13 +128,13 @@ const DetectionMap = ({ detections }: DetectionMapProps) => {
       popupContent.appendChild(document.createElement('br'));
 
       const locationEl = document.createElement('small');
-      locationEl.textContent = 'Simulated location';
+      locationEl.textContent = locationSource;
       popupContent.appendChild(locationEl);
 
-      const popup = new mapboxgl.Popup({ offset: 25 }).setDOMContent(popupContent);
+      const popup = new mapboxgl.Popup({ offset: 40 }).setDOMContent(popupContent);
 
-      // Add marker to map
-      const marker = new mapboxgl.Marker(el)
+      // Add marker to map with anchor at bottom (where the pointer is)
+      const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
         .setLngLat([lng, lat])
         .setPopup(popup)
         .addTo(map.current!);
@@ -128,7 +150,7 @@ const DetectionMap = ({ detections }: DetectionMapProps) => {
           markersRef.current.delete(key);
           processedDetectionsRef.current.delete(key);
         }, 500); // Match fade-out duration
-      }, 5000);
+      }, 30000); // Display markers for 30 seconds
 
       markersRef.current.set(key, { marker, timeout });
     });

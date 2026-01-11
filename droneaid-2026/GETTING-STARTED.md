@@ -109,15 +109,28 @@ Open your browser:
 ### Web Interface
 
 1. **Open** <http://localhost:3000>
-2. **Start Webcam** - Click the "Start Webcam" button (left side)
-3. **Enable Detection** - Toggle "Prediction" on (center)
+
+#### Webcam Mode
+2. **Start Webcam** - Click the "Start Webcam" button
+3. **Automatic Detection** - Detection starts immediately (no toggle needed)
 4. **Adjust Confidence** - Use slider to set minimum confidence threshold (0.1-1.0)
 5. **Show Symbols** - Display DroneAid symbols to your camera
 6. **View Results**:
    - **Detected Stream Panel**: Live webcam feed with bounding boxes drawn on detected symbols
-   - **Detected Symbols Panel**: List of detected symbols with color-coded tags and confidence percentages
-   - **Detection Map**: Interactive Mapbox map showing simulated detection locations across San Francisco
-7. **Watch Map Animations**: Markers fade in when detected, stay for 5 seconds, then fade out
+   - **Detected Symbols Panel**: List of detected symbols with color-coded tags, confidence percentages, and fade animations
+   - **Detection Map**: Interactive Mapbox map showing detections across Puerto Rico (simulated locations for webcam)
+7. **Watch Animations**: Detections and markers fade in, stay for 30 seconds, then fade out
+
+#### Image Upload Mode
+2. **Upload Images** - Click the blue "Upload Image(s)" button
+3. **Select JPG Files** - Choose one or more JPEG images (with GPS EXIF data recommended)
+4. **Automatic Detection** - Images are processed instantly upon upload
+5. **GPS Mapping** - If EXIF GPS data exists, detections are plotted at real coordinates
+6. **View Results**:
+   - **Detected Image Panel**: Shows the uploaded image
+   - **Detected Symbols Panel**: Animated list of detections from all uploaded images
+   - **Detection Map**: Markers plotted at actual GPS coordinates from image metadata
+7. **Switch Back** - Click "Start Webcam" to return to live stream mode
 8. **Stop When Done** - Click "Stop Webcam" to release camera
 
 ### Testing with Symbol Images
@@ -238,14 +251,53 @@ Open <http://localhost:6006>
 
 ```bash
 # Ensure model exists
-ls inference/models/best.pt
+ls training/models/droneaid/weights/best.pt
 
-# If missing, copy from training
+# If missing, run training first
+./quickstart.sh
+
+# Or manually copy
 cp training/models/droneaid/weights/best.pt inference/models/
 
 # Restart service
 docker-compose restart inference
 ```
+
+### Mapbox Token Missing
+
+**Problem**: Map not loading or console shows "Mapbox access token is missing"
+
+**Solution**:
+
+```bash
+cd webapp
+cp .env.example .env
+# Edit .env and add your Mapbox token
+# Get free token at https://account.mapbox.com/access-tokens/
+
+# Rebuild webapp
+docker-compose build webapp
+docker-compose up -d webapp
+```
+
+### Image Upload Not Detecting
+
+**Problem**: Uploading images but getting 0 detections
+
+**Solution**:
+- Lower the confidence threshold slider to 0.1 or 0.2
+- Ensure images contain clear, visible DroneAid symbols
+- Verify the model is trained (check <http://localhost:8000/health>)
+- Check inference API logs: `docker logs droneaid-2026-inference-1`
+
+### GPS Coordinates Not Plotting
+
+**Problem**: Uploaded images not appearing at correct map location
+
+**Solution**:
+- Verify images have GPS EXIF metadata (use `exiftool` or image properties)
+- Check browser console for GPS extraction messages
+- Images without GPS data will use simulated Puerto Rico locations
 
 ### Port Already in Use
 
