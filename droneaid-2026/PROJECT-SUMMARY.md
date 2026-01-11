@@ -36,6 +36,11 @@ droneaid-2026/
 - Automated hyperparameter tuning
 - TensorBoard integration
 - Multiple export formats (PyTorch, ONNX, TensorFlow)
+- **Enhanced Dataset Generation** (January 11, 2026):
+  - Color degradation simulation (50% of images) - faded/washed-out icons
+  - Weather effects (30% of images) - fog, haze, sun glare
+  - Shape enhancement (20% of images) - edge detection for geometry-based detection
+  - Robust against color fading, aging, and environmental conditions
 
 ### ✅ Inference Service
 
@@ -136,15 +141,21 @@ droneaid-2026/
 
 **Files Created**:
 
-- `README.md` - Project overview
-- `GETTING-STARTED.md` - Quick start guide
-- `docs/TRAINING.md` - Training documentation
+- `README.md` - Project overview with retraining quick start
+- `GETTING-STARTED.md` - Quick start guide with dual mode workflows
+- `RETRAINING-SUMMARY.md` - Model enhancement summary (January 11, 2026)
+- `docs/TRAINING.md` - Complete training documentation with enhancements
+- `docs/RETRAINING.md` - Step-by-step retraining guide
+- `docs/TRAINING-ENHANCEMENTS.md` - Detailed enhancement explanation and examples
 - `docs/API.md` - API reference
+- `.github/copilot-instructions.md` - Comprehensive project context for AI assistance
 
 **Coverage**:
 
 - Installation and setup
-- Training workflows
+- Training workflows with shape + color detection
+- Model retraining for faded icon detection
+- Enhanced dataset generation techniques
 - API integration
 - Deployment strategies
 - Troubleshooting

@@ -137,7 +137,24 @@ The system will:
 
 ## Training Your Own Model
 
-See [docs/TRAINING.md](docs/TRAINING.md) for detailed instructions on:
+The training system has been enhanced to detect icons even when colors are faded or washed-out:
+
+- **Color Degradation Simulation**: 50% of training data includes desaturated, faded icons
+- **Weather Effects**: Fog, haze, and sun glare simulation for environmental robustness
+- **Shape-Based Detection**: Edge enhancement trains the model to recognize icon shapes, not just colors
+- **Robust Detection**: Works with sun-bleached, aged, or poorly printed icons
+
+### Quick Retrain
+
+```bash
+cd training
+docker build -t droneaid-training .
+docker run -v $(pwd)/data:/app/data -v $(pwd)/models:/app/models droneaid-training
+```
+
+See [docs/RETRAINING.md](docs/RETRAINING.md) for a complete retraining guide.
+
+For detailed training information, see [docs/TRAINING.md](docs/TRAINING.md):
 
 - Preparing custom datasets
 - Configuring training parameters

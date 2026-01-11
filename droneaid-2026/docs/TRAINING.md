@@ -41,7 +41,9 @@ tensorboard --logdir training/models/droneaid
 The `prepare_data.py` script automatically generates a synthetic dataset by:
 
 1. **Loading Icons**: Reads the 8 DroneAid symbols from `assets/icons/`
+
 2. **Creating Backgrounds**: Generates varied backgrounds (solid, gradient, noisy textures)
+
 3. **Augmentation**: Applies random transformations:
    - Rotation: ±30 degrees
    - Scale: 50-150% of original size
@@ -49,9 +51,27 @@ The `prepare_data.py` script automatically generates a synthetic dataset by:
    - Lighting: Varied brightness and contrast
    - Blur: Occasional Gaussian blur
 
-4. **YOLO Format**: Saves images and labels in YOLO format:
+4. **Enhanced Robustness Features** (NEW):
+   - **Color Degradation** (50% of images): Simulates faded, washed-out, or sun-bleached icons
+     - Desaturation: 30-70% color saturation to simulate aging and fading
+     - Brightness variation: 70-130% to simulate different lighting conditions
+     - Contrast reduction: 50-80% for washed-out appearance
+   
+   - **Weather Effects** (30% of images): Environmental condition simulation
+     - Fog: White overlay with 20-40% opacity
+     - Haze: Gray overlay with 15-35% opacity
+     - Sun glare: Brightness increase of 20-50%
+   
+   - **Shape Emphasis** (20% of images): Edge enhancement to train shape-based detection
+     - Canny edge detection blended into training images
+     - Helps model learn icon shapes, not just colors
+     - Critical for detecting faded icons where color is unreliable
+
+5. **YOLO Format**: Saves images and labels in YOLO format:
    - Images: `data/droneaid_dataset/images/train/` and `/val/`
    - Labels: `data/droneaid_dataset/labels/train/` and `/val/`
+
+**Why These Enhancements Matter**: The enhanced dataset ensures the model learns both color AND shape features. When icons are faded or washed out (common in outdoor disaster scenarios), the model can still detect them based on shape patterns rather than relying solely on color information.
 
 ### Dataset Configuration
 

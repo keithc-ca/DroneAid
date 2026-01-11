@@ -17,11 +17,13 @@ from pathlib import Path
 
 from model import DroneAidDetector
 
-# Initialize FastAPI app
+# Initialize FastAPI app with increased body size limit
 app = FastAPI(
     title="DroneAid 2026 Inference API",
     description="Real-time detection API for DroneAid disaster response symbols",
-    version="2.0.0"
+    version="2.0.0",
+    # Increase max request body size to 50MB
+    max_request_size=50 * 1024 * 1024
 )
 
 # Configure CORS
